@@ -1,0 +1,12 @@
+﻿@model List<Employee> // 資料型態放最上面
+@{
+    // 這個區塊主要用來放 C# 程式碼
+    ViewData["Title"] = "首頁";
+}
+
+
+<div class="text-center">
+    <h1>Controller 傳遞文字到 View 的方法</h1>
+    <h2 class="text-danger">1. @ViewData["TestString1"]</h2>
+    <h3 class="text-primary mb-5">2. @ViewBag.Test2</h3>
+</div>

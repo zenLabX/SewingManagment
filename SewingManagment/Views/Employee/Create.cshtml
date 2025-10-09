@@ -1,0 +1,33 @@
+﻿@model EmployeeViewModel //一定要記得引入model，不然下面都會出錯
+@{
+    ViewData["Title"] = "員工新增頁面";
+}
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label>姓名</label>
+        @Html.TextBoxFor(m => m.Name, new { @class = "form-control" })
+        @* 表單驗證 *@ 
+        @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="form-group">
+        <label>年齡</label>
+        @Html.TextBoxFor(m => m.Age, new { type = "number", @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Age, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="form-group">
+        <label>性別</label>
+        @Html.DropDownListFor(m => m.Gender, (List<SelectListItem>)ViewBag.GenderList, "--請選擇--", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Gender, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="form-group">
+        <label>職務</label>
+        @Html.DropDownListFor(m => m.Position, (List<SelectListItem>)ViewBag.PositionList, "--請選擇--", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.Position, "", new { @class = "text-danger" })
+    </div>
+
+    <button type="submit" class="btn btn-success mt-2">新增員工</button>
+</form>

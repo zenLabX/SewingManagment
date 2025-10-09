@@ -1,0 +1,44 @@
+﻿@model List<Employee> // 資料型態放最上面
+@{
+    ViewData["Title"] = "員工資料列表";
+}
+
+<div class="mb-4 d-flex justify-content-end">
+    <a class="btn btn-primary px-4" asp-controller="Employee" asp-action="Create">新增</a>
+</div>
+<table class="table">
+    <thead class="table-secondary">
+        <tr>
+            <th>操作</th>
+            <th scope="col">工號</th>
+            <th scope="col">姓名</th>
+            <th scope="col">性別</th>
+            <th scope="col">職務</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var e in Model)
+        {
+            var title = e.Position == "03" ? "經理" : "一般人員";
+            var gender = e.Gender == "F" ? "女" : "男";
+            var rowStyle = e.Position == "03" ? "table-warning" : "";
+
+            <tr class="@rowStyle">
+                <td>
+                    @* 使用 a 標籤而不是 button 標籤，因為 a 標籤可以傳遞 id *@
+                    <a class="btn btn-warning px-4" asp-controller="Employee" asp-action="Edit" asp-route-id="@e.Id">編輯</a>
+                    <a class="btn btn-danger px-4" asp-controller="Employee" asp-action="Delete">刪除</a>
+                </td>
+                <td>@e.Id</td>
+                <td>@e.Name</td>
+                <td>@gender</td>
+                <td>@title</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (TempData["Message"] != null)
+{
+    <p class="alert alert-success mt-2">@TempData["Message"]</p>
+}

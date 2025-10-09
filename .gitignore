@@ -1,0 +1,81 @@
+# ---- System/OS ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- IDEs & Editors ----
+.vs/
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.idea/
+*.iml
+
+# ---- User-specific files ----
+*.suo
+*.user
+*.rsuser
+*.sln.docstates
+*.csproj.user
+
+# ---- Build outputs ----
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Tt]est[Rr]esult*/
+artifacts/
+out/
+publish/
+
+# ---- Coverage & diagnostics ----
+*.coverage
+*.coveragexml
+coverage/
+*.svclog
+
+# ---- Temp & cache ----
+*.cache
+*.tmp
+*.bak
+*.orig
+*.log
+*.pid
+
+# ---- NuGet ----
+*.nupkg
+*.snupkg
+packages/
+!packages/build/
+project.lock.json
+project.fragment.lock.json
+project.nuget.cache
+nuget.exe
+*.nuget.props
+*.nuget.targets
+
+# ---- Rider/ReSharper ----
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# ---- Node / frontend ----
+node_modules/
+# 若 wwwroot/lib 由 LibMan/npm 產生，可取消下一行註解
+# wwwroot/lib/
+
+# ---- ASP.NET Core generated (handled under obj/ above) ----
+# obj/**/staticwebassets*
+
+# ---- App settings & secrets ----
+# 保留基底 appsettings.json；忽略可能含祕密的在地/環境檔
+appsettings.*.local.json
+appsettings.Development.json
+secrets.json
+
+# ---- Windows ----
+[Bb]ackup*/
+$RECYCLE.BIN/
