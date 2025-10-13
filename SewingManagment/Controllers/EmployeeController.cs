@@ -71,7 +71,7 @@ namespace SewingManagment.Controllers
                 _context.SaveChanges();
 
                 // 可設定提示訊息
-                TempData["Message"] = "員工新增成功！";
+                TempData["Message"] = "員工新增成功!";
 
                 //執行成功後，重新導向到 Query 這個 Action（通常是列表頁）
                 return RedirectToAction(nameof(Query));
