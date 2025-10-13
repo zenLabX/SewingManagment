@@ -9,7 +9,8 @@ namespace SewingManagment.Data
         {
 
         }
-
+        // 在這裡新增 DbSet 以新增模型，並執行 Migration
         public DbSet<Employee> Employees { get; set; }
+        public DbSet<Product> Products { get; set; }
     }
 }

@@ -65,7 +65,7 @@ _ReSharper*/
 # ---- Node / frontend ----
 node_modules/
 # 若 wwwroot/lib 由 LibMan/npm 產生，可取消下一行註解
-# wwwroot/lib/
+wwwroot/lib/*
 
 # ---- ASP.NET Core generated (handled under obj/ above) ----
 # obj/**/staticwebassets*

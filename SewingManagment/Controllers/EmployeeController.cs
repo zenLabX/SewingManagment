@@ -71,7 +71,7 @@ namespace SewingManagment.Controllers
                 _context.SaveChanges();
 
                 // 可設定提示訊息
-                TempData["Message"] = "員工新增成功!";
+                TempData["Message"] = "員工新增成功！";
 
                 //執行成功後，重新導向到 Query 這個 Action（通常是列表頁）
                 return RedirectToAction(nameof(Query));
@@ -147,24 +147,27 @@ namespace SewingManagment.Controllers
             }
         }
 
-        // GET: HomeController1/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
         // POST: HomeController1/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        [HttpDelete]
+        [Route("Employee/Delete/{id}")]
+        //[ValidateAntiForgeryToken]
+        public ActionResult Delete(int id)
         {
             try
             {
-                return RedirectToAction(nameof(Index));
+                var entity = _context.Employees.Find(id);
+
+                if (entity == null)
+                    return NotFound();
+
+                _context.Employees.Remove(entity);
+                _context.SaveChanges();
+
+                return Ok(); // 不回頁面，只回成功狀態
             }
-            catch
+            catch (Exception ex)
             {
-                return View();
+                return StatusCode(500, new { message = "500: 刪除失敗", detail = ex.Message });
             }
         }
 

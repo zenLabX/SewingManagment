@@ -27,7 +27,8 @@
                 <td>
                     @* 使用 a 標籤而不是 button 標籤，因為 a 標籤可以傳遞 id *@
                     <a class="btn btn-warning px-4" asp-controller="Employee" asp-action="Edit" asp-route-id="@e.Id">編輯</a>
-                    <a class="btn btn-danger px-4" asp-controller="Employee" asp-action="Delete">刪除</a>
+                    @* 使用 button 搭配 js 發送刪除請求 *@
+                    <a class="btn btn-danger px-4 btn-delete" data-id="@e.Id">刪除</a>
                 </td>
                 <td>@e.Id</td>
                 <td>@e.Name</td>
@@ -41,4 +42,30 @@
 @if (TempData["Message"] != null)
 {
     <p class="alert alert-success mt-2">@TempData["Message"]</p>
+}
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+
+                const id = btn.getAttribute('data-id');
+                if (!confirm(`確定要刪除 ID=${id} 的員工嗎？`)) return;
+
+                const response = await fetch(`/Employee/Delete/${id}`, {
+                    method: 'DELETE'
+                });
+
+                console.log('response',response)
+
+                if (response.ok) {
+                    alert('刪除成功');
+                    btn.closest('tr').remove(); // 從表格刪掉該列
+                } else {
+                    alert('刪除失敗');
+                }
+            });
+        });
+    </script>
 }
