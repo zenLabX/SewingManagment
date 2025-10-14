@@ -1,10 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SewingManagment.Data;
+using SewingManagment.Extensions;
+using SewingManagment.Helpers;
 using SewingManagment.Models;
-using System.Reflection;
+using SewingManagment.ViewModels; // 引入擴充方法命名空間
 
 namespace SewingManagment.Controllers
 {
@@ -18,20 +21,39 @@ namespace SewingManagment.Controllers
             _context = context;
         }
 
-        public ActionResult Query()
+        // GET: EmployeeController/Query
+        public async Task<ActionResult> Query(QueryViewModel queryModel)
         {
-            try
-            {
-                // 從資料表取得所有 Employee
-                var entity = _context.Employees.ToList();
+            var employees = _context.Employees.AsQueryable();
 
-                return View(entity);
-            }
-            catch (Exception ex)
+            // 使用擴充方法進行動態搜尋
+            employees = employees.ApplySearch(queryModel.SearchTerm, queryModel.SearchField);
+
+            // 使用 async 分頁
+            var viewModel = await PaginationHelper.ToPaginatedViewModel(employees, queryModel);
+
+            return View(viewModel);
+        }
+
+        // POST: EmployeeController/Query
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Query(QueryViewModel queryModel, int? pageNumber)
+        {
+            if (pageNumber.HasValue)
             {
-                return View(ex.Message);
+                queryModel.PageNumber = pageNumber.Value;
             }
 
+            var employees = _context.Employees.AsQueryable();
+
+            // 使用擴充方法進行動態搜尋
+            employees = employees.ApplySearch(queryModel.SearchTerm, queryModel.SearchField);
+
+            // 使用 async 分頁
+            var viewModel = await PaginationHelper.ToPaginatedViewModel(employees, queryModel);
+
+            return View(viewModel);
         }
 
         //Get 進入 Create 頁面
