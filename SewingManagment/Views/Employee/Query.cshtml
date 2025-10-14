@@ -1,43 +1,94 @@
-﻿@model List<Employee> // 資料型態放最上面
+﻿@using Microsoft.AspNetCore.Html
+@using SewingManagment.Enums
+@using SewingManagment.Extensions
+@using SewingManagment.ViewModels
+@model PaginatedViewModel<Employee>
 @{
+    /* 整個 View 的共用資訊，例如標題、說明文字、頁面層級設定等 */
     ViewData["Title"] = "員工資料列表";
 }
+@{
+    /* _Table.cshtml 的設定 */
+    var tableHeaders = new Dictionary<string, string>
+    {
+        { "Id", "工號" },
+        { "Name", "姓名" },
+        { "Gender", "性別" },
+        { "Position", "職務" }
+    };
+
+    /* 定義欄位順序 */
+    var tableColumns = new List<string> { "Id", "Name", "Gender", "Position" };
+
+    /* 可選：設定每列的 class */
+    Func<dynamic, string> tableRowClassFunc = e => e.Position == "03" ? "table-warning" : "";
+
+    /*
+     * 可選：設定操作按鈕
+     * 使用 a 標籤而不是 button 標籤，因為 a 標籤可以傳遞 id
+     */
+    Func<dynamic, Microsoft.AspNetCore.Html.IHtmlContent> tableActionsFunc = e =>
+    {
+        var editUrl = $"/Employee/Edit/{e.Id}";
+        return new HtmlString($@"
+            <a class='btn btn-warning px-4' href='{editUrl}'>編輯</a>
+            <a class='btn btn-danger px-4 btn-delete' data-id='{e.Id}'>刪除</a>
+        ");
+    };
+
+    var tableViewData = new ViewDataDictionary(ViewData)
+    {
+        { "Headers", tableHeaders },
+        { "Columns", tableColumns },
+        { "RowClassFunc", tableRowClassFunc },
+        { "ActionsFunc", tableActionsFunc }
+    };
+}
+
+@* 搜尋表單 *@
+<form asp-controller="Employee" asp-action="Query" method="post" class="mb-4">
+    <div class="input-group">
+        <select class="form-select" asp-for="SearchField"
+                asp-items="@(default(EmployeeSearchField).ToSelectList())">
+        </select>
+        <input type="text" class="form-control" placeholder="搜尋內容..." name="SearchTerm" value="@Model.SearchTerm" />
+        <input type="hidden" name="PageNumber" value="1" />
+        <input type="hidden" name="PageSize" value="@Model.PageSize" />
+        <button class="btn btn-outline-secondary" type="submit">搜尋</button>
+    </div>
+</form>
 
 <div class="mb-4 d-flex justify-content-end">
     <a class="btn btn-primary px-4" asp-controller="Employee" asp-action="Create">新增</a>
 </div>
-<table class="table">
-    <thead class="table-secondary">
-        <tr>
-            <th>操作</th>
-            <th scope="col">工號</th>
-            <th scope="col">姓名</th>
-            <th scope="col">性別</th>
-            <th scope="col">職務</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var e in Model)
-        {
-            var title = e.Position == "03" ? "經理" : "一般人員";
-            var gender = e.Gender == "F" ? "女" : "男";
-            var rowStyle = e.Position == "03" ? "table-warning" : "";
 
-            <tr class="@rowStyle">
-                <td>
-                    @* 使用 a 標籤而不是 button 標籤，因為 a 標籤可以傳遞 id *@
-                    <a class="btn btn-warning px-4" asp-controller="Employee" asp-action="Edit" asp-route-id="@e.Id">編輯</a>
-                    @* 使用 button 搭配 js 發送刪除請求 *@
-                    <a class="btn btn-danger px-4 btn-delete" data-id="@e.Id">刪除</a>
-                </td>
-                <td>@e.Id</td>
-                <td>@e.Name</td>
-                <td>@gender</td>
-                <td>@title</td>
-            </tr>
+@await Html.PartialAsync("_Table", Model.Items, tableViewData)
+
+@* pagination 元件 *@
+<nav aria-label="員工分頁導航">
+    <ul class="pagination justify-content-center">
+        <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
+            <a class="page-link" href="#" onclick="submitForm(@(Model.PageNumber - 1))">上一頁</a>
+        </li>
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                <a class="page-link" href="#" onclick="submitForm(@i)">@i</a>
+            </li>
         }
-    </tbody>
-</table>
+        <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
+            <a class="page-link" href="#" onclick="submitForm(@(Model.PageNumber + 1))">下一頁</a>
+        </li>
+    </ul>
+</nav>
+
+<form id="paginationForm" asp-controller="Employee" asp-action="Query" method="post" style="display:none;">
+    <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
+    <input type="hidden" name="SearchField" value="@Model.SearchField" />
+    <input type="hidden" name="PageNumber" id="pageNumberInput" value="@Model.PageNumber" />
+    <input type="hidden" name="PageSize" value="@Model.PageSize" />
+</form>
+@* pagination 元件 *@
 
 @if (TempData["Message"] != null)
 {
@@ -46,6 +97,11 @@
 
 @section Scripts {
     <script>
+        function submitForm(pageNumber) {
+            document.getElementById('pageNumberInput').value = pageNumber;
+            document.getElementById('paginationForm').submit();
+        }
+
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -61,7 +117,8 @@
 
                 if (response.ok) {
                     alert('刪除成功');
-                    btn.closest('tr').remove(); // 從表格刪掉該列
+                    // 重新載入頁面以更新列表，因為刪除可能會影響分頁
+                    submitForm(@Model.PageNumber);
                 } else {
                     alert('刪除失敗');
                 }

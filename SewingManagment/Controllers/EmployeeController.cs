@@ -32,6 +32,18 @@ namespace SewingManagment.Controllers
             // 使用 async 分頁
             var viewModel = await PaginationHelper.ToPaginatedViewModel(employees, queryModel);
 
+            // table 資料格式轉換 (正式要做在 auto mapper)
+            foreach (var e in viewModel.Items)
+            {
+                e.Gender = e.Gender == "F" ? "女" : "男";
+                e.Position = e.Position switch
+                {
+                    "03" => "經理",
+                    "02" => "組長",
+                    _ => "一般人員"
+                };
+            }
+
             return View(viewModel);
         }
 
@@ -52,6 +64,18 @@ namespace SewingManagment.Controllers
 
             // 使用 async 分頁
             var viewModel = await PaginationHelper.ToPaginatedViewModel(employees, queryModel);
+
+            // table 資料格式轉換 (正式要做在 auto mapper)
+            foreach (var e in viewModel.Items)
+            {
+                e.Gender = e.Gender == "F" ? "女" : "男";
+                e.Position = e.Position switch
+                {
+                    "03" => "經理",
+                    "02" => "組長",
+                    _ => "一般人員"
+                };
+            }
 
             return View(viewModel);
         }

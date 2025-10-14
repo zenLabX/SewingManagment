@@ -1,0 +1,43 @@
+﻿@model IEnumerable<dynamic>
+@{
+    // 欄位對應模型屬性
+    var columns = ViewData["Columns"] as List<string> ?? new List<string>();
+    // 欄位顯示名稱
+    var headers = ViewData["Headers"] as Dictionary<string, string> ?? new Dictionary<string, string>();
+    // 每列 class
+    var rowClassFunc = ViewData["RowClassFunc"] as Func<dynamic, string>;
+    // 操作按鈕
+    var actionsFunc = ViewData["ActionsFunc"] as Func<dynamic, Microsoft.AspNetCore.Html.IHtmlContent>;
+}
+
+<table class="table">
+    <thead class="table-secondary">
+        <tr>
+            @if (actionsFunc != null)
+            {
+                <th>操作</th>
+            }
+            @foreach (var col in columns)
+            {
+                <th scope="col">@headers.GetValueOrDefault(col, col)</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            string rowClass = rowClassFunc != null ? rowClassFunc(item) : "";
+            <tr class="@rowClass">
+                @if (actionsFunc != null)
+                {
+                    <td>@actionsFunc(item)</td>
+                }
+                @foreach (var col in columns)
+                {
+                    var value = item.GetType().GetProperty(col)?.GetValue(item);
+                    <td>@value</td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
