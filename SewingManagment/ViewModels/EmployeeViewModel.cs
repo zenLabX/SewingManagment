@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SewingManagment.Models
+namespace SewingManagment.ViewModels
 {
     public class EmployeeViewModel
     {

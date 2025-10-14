@@ -1,4 +1,4 @@
-namespace SewingManagment.Models
+namespace SewingManagment.ViewModels
 {
     public class ErrorViewModel
     {
