@@ -1,13 +1,14 @@
 ﻿@using Microsoft.AspNetCore.Html
 @using SewingManagment.Enums
 @using SewingManagment.Extensions
+@using SewingManagment.UI
 @using SewingManagment.ViewModels
-@model PaginatedViewModel<Employee>
+@model (PaginatedViewModel<Employee> ViewModel, TableConfig Config)
 @{
     /* 整個 View 的共用資訊，例如標題、說明文字、頁面層級設定等 */
     ViewData["Title"] = "員工資料列表";
 }
-@{
+@* @{
     /* _Table.cshtml 的設定 */
     var tableHeaders = new Dictionary<string, string>
     {
@@ -43,17 +44,17 @@
         { "RowClassFunc", tableRowClassFunc },
         { "ActionsFunc", tableActionsFunc }
     };
-}
+} *@
 
 @* 搜尋表單 *@
 <form asp-controller="Employee" asp-action="Query" method="post" class="mb-4">
     <div class="input-group">
-        <select class="form-select" asp-for="SearchField"
+        <select class="form-select" asp-for="ViewModel.SearchField"
                 asp-items="@(default(EmployeeSearchField).ToSelectList())">
         </select>
-        <input type="text" class="form-control" placeholder="搜尋內容..." name="SearchTerm" value="@Model.SearchTerm" />
+        <input type="text" class="form-control" placeholder="搜尋內容..." name="SearchTerm" value="@Model.ViewModel.SearchTerm" />
         <input type="hidden" name="PageNumber" value="1" />
-        <input type="hidden" name="PageSize" value="@Model.PageSize" />
+        <input type="hidden" name="PageSize" value="@Model.ViewModel.PageSize" />
         <button class="btn btn-outline-secondary" type="submit">搜尋</button>
     </div>
 </form>
@@ -62,31 +63,31 @@
     <a class="btn btn-primary px-4" asp-controller="Employee" asp-action="Create">新增</a>
 </div>
 
-@await Html.PartialAsync("_Table", Model.Items, tableViewData)
+@await Html.PartialAsync("_Table", Model)
 
 @* pagination 元件 *@
 <nav aria-label="員工分頁導航">
     <ul class="pagination justify-content-center">
-        <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : "")">
-            <a class="page-link" href="#" onclick="submitForm(@(Model.PageNumber - 1))">上一頁</a>
+        <li class="page-item @(Model.ViewModel.PageNumber <= 1 ? "disabled" : "")">
+            <a class="page-link" href="#" onclick="submitForm(@(Model.ViewModel.PageNumber - 1))">上一頁</a>
         </li>
-        @for (int i = 1; i <= Model.TotalPages; i++)
+        @for (int i = 1; i <= Model.ViewModel.TotalPages; i++)
         {
-            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+            <li class="page-item @(i == Model.ViewModel.PageNumber ? "active" : "")">
                 <a class="page-link" href="#" onclick="submitForm(@i)">@i</a>
             </li>
         }
-        <li class="page-item @(Model.PageNumber >= Model.TotalPages ? "disabled" : "")">
-            <a class="page-link" href="#" onclick="submitForm(@(Model.PageNumber + 1))">下一頁</a>
+        <li class="page-item @(Model.ViewModel.PageNumber >= Model.ViewModel.TotalPages ? "disabled" : "")">
+            <a class="page-link" href="#" onclick="submitForm(@(Model.ViewModel.PageNumber + 1))">下一頁</a>
         </li>
     </ul>
 </nav>
 
 <form id="paginationForm" asp-controller="Employee" asp-action="Query" method="post" style="display:none;">
-    <input type="hidden" name="SearchTerm" value="@Model.SearchTerm" />
-    <input type="hidden" name="SearchField" value="@Model.SearchField" />
-    <input type="hidden" name="PageNumber" id="pageNumberInput" value="@Model.PageNumber" />
-    <input type="hidden" name="PageSize" value="@Model.PageSize" />
+    <input type="hidden" name="SearchTerm" value="@Model.ViewModel.SearchTerm" />
+    <input type="hidden" name="SearchField" value="@Model.ViewModel.SearchField" />
+    <input type="hidden" name="PageNumber" id="pageNumberInput" value="@Model.ViewModel.PageNumber" />
+    <input type="hidden" name="PageSize" value="@Model.ViewModel.PageSize" />
 </form>
 @* pagination 元件 *@
 
@@ -118,7 +119,7 @@
                 if (response.ok) {
                     alert('刪除成功');
                     // 重新載入頁面以更新列表，因為刪除可能會影響分頁
-                    submitForm(@Model.PageNumber);
+                    submitForm(@Model.ViewModel.PageNumber);
                 } else {
                     alert('刪除失敗');
                 }

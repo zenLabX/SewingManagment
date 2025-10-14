@@ -7,6 +7,7 @@ using SewingManagment.Data;
 using SewingManagment.Extensions;
 using SewingManagment.Helpers;
 using SewingManagment.Models;
+using SewingManagment.UI;
 using SewingManagment.ViewModels; // 引入擴充方法命名空間
 
 namespace SewingManagment.Controllers
@@ -30,21 +31,10 @@ namespace SewingManagment.Controllers
             employees = employees.ApplySearch(queryModel.SearchTerm, queryModel.SearchField);
 
             // 使用 async 分頁
-            var viewModel = await PaginationHelper.ToPaginatedViewModel(employees, queryModel);
+            PaginatedViewModel<Employee> paginatedData = await PaginationHelper.ToPaginatedViewModel(employees, queryModel);
+            TableConfig tableConfig = EmployeeTableConfigFactory.Create();
 
-            // table 資料格式轉換 (正式要做在 auto mapper)
-            foreach (var e in viewModel.Items)
-            {
-                e.Gender = e.Gender == "F" ? "女" : "男";
-                e.Position = e.Position switch
-                {
-                    "03" => "經理",
-                    "02" => "組長",
-                    _ => "一般人員"
-                };
-            }
-
-            return View(viewModel);
+            return View((ViewModel: paginatedData, Config: tableConfig));
         }
 
         // POST: EmployeeController/Query
@@ -63,21 +53,10 @@ namespace SewingManagment.Controllers
             employees = employees.ApplySearch(queryModel.SearchTerm, queryModel.SearchField);
 
             // 使用 async 分頁
-            var viewModel = await PaginationHelper.ToPaginatedViewModel(employees, queryModel);
+            PaginatedViewModel<Employee> paginatedData = await PaginationHelper.ToPaginatedViewModel(employees, queryModel);
+            TableConfig tableConfig = EmployeeTableConfigFactory.Create();
 
-            // table 資料格式轉換 (正式要做在 auto mapper)
-            foreach (var e in viewModel.Items)
-            {
-                e.Gender = e.Gender == "F" ? "女" : "男";
-                e.Position = e.Position switch
-                {
-                    "03" => "經理",
-                    "02" => "組長",
-                    _ => "一般人員"
-                };
-            }
-
-            return View(viewModel);
+            return View((ViewModel: paginatedData, Config: tableConfig));
         }
 
         //Get 進入 Create 頁面
