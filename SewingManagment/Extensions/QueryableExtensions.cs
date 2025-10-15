@@ -2,43 +2,227 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Linq.Expressions;
+using System.Globalization;
 
 namespace SewingManagment.Extensions
 {
     public static class QueryableExtensions
     {
-        public static IQueryable<T> ApplySearchAndSort<T>(this IQueryable<T> query, string? searchTerm, string? fieldsCsv, string? sortField, string? sortDirection)
+        public static IQueryable<T> ApplySearchAndSort<T>(
+            this IQueryable<T> query,
+            string? searchTerm,
+            string? fieldsCsv,
+            string? sortField,
+            string? sortDirection)
         {
             // --- 搜尋邏輯 ---
-            if (!string.IsNullOrWhiteSpace(searchTerm) && !string.IsNullOrWhiteSpace(fieldsCsv))
+            if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                var fields = fieldsCsv.Split(',')
-                                      .Select(f => f.Trim())
-                                      .Where(f => !string.IsNullOrEmpty(f))
-                                      .ToList();
+                var allProps = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance).ToList();
 
-                if (fields.Any())
+                // 若有 fieldsCsv，僅在其白名單中的欄位搜尋；否則搜尋所有欄位
+                if (!string.IsNullOrWhiteSpace(fieldsCsv))
                 {
-                    var stringProps = typeof(T).GetProperties()
-                                               .Where(p => p.PropertyType == typeof(string))
-                                               .ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
+                    var fields = fieldsCsv
+                        .Split(',')
+                        .Select(f => f.Trim())
+                        .Where(f => !string.IsNullOrEmpty(f))
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    allProps = allProps.Where(p => fields.Contains(p.Name)).ToList();
+                }
 
-                    var validFields = fields.Where(f => stringProps.ContainsKey(f)).ToList();
+                if (allProps.Any())
+                {
+                    var parameter = Expression.Parameter(typeof(T), "x");
+                    Expression? orBody = null;
 
-                    if (validFields.Any())
+                    // 共用：EF.Functions.Like 方法資訊
+                    var likeMethod = typeof(DbFunctionsExtensions).GetMethod(
+                        nameof(DbFunctionsExtensions.Like),
+                        new[] { typeof(DbFunctions), typeof(string), typeof(string) }
+                    );
+
+                    // 共用：EF.Property<T>(x, propName) 的非閉合泛型方法
+                    var efPropertyOpenGeneric = typeof(EF)
+                        .GetMethods(BindingFlags.Public | BindingFlags.Static)
+                        .First(m => m.Name == nameof(EF.Property) && m.IsGenericMethodDefinition && m.GetParameters().Length == 2);
+
+                    // 小工具：將某個常數值與指定屬性建立等值條件，處理 Nullable
+                    Expression BuildEqualsPredicate(PropertyInfo prop, object value)
                     {
-                        // 多欄位模糊搜尋
-                        IQueryable<T> searchQuery = query;
+                        var propType = prop.PropertyType;
+                        var efPropertyGeneric = efPropertyOpenGeneric.MakeGenericMethod(propType);
+                        var propertyAccess = Expression.Call(
+                            null,
+                            efPropertyGeneric,
+                            parameter,
+                            Expression.Constant(prop.Name)
+                        );
 
-                        foreach (var field in validFields)
+                        var underlying = Nullable.GetUnderlyingType(propType);
+                        Expression right;
+                        if (underlying != null)
                         {
-                            var propName = field;
-                            searchQuery = searchQuery.Where(x =>
-                                EF.Property<string>(x, propName) != null &&
-                                EF.Property<string>(x, propName).Contains(searchTerm));
+                            // 將非 Nullable 的常數轉為 Nullable<T>
+                            right = Expression.Convert(Expression.Constant(value, underlying), propType);
+                        }
+                        else
+                        {
+                            right = Expression.Constant(value, propType);
                         }
 
-                        query = searchQuery;
+                        return Expression.Equal(propertyAccess, right);
+                    }
+
+                    var term = searchTerm.Trim();
+                    var lower = term.ToLowerInvariant();
+
+                    foreach (var prop in allProps)
+                    {
+                        var propType = prop.PropertyType;
+                        var underlying = Nullable.GetUnderlyingType(propType) ?? propType;
+
+                        Expression? predicateForThisProp = null;
+
+                        // 1) 字串欄位：LIKE 模糊比對
+                        if (underlying == typeof(string))
+                        {
+                            var efPropertyGeneric = efPropertyOpenGeneric.MakeGenericMethod(typeof(string));
+                            var propertyAccess = Expression.Call(
+                                null,
+                                efPropertyGeneric,
+                                parameter,
+                                Expression.Constant(prop.Name)
+                            );
+
+                            var coalesce = Expression.Coalesce(propertyAccess, Expression.Constant(string.Empty, typeof(string)));
+                            predicateForThisProp = Expression.Call(
+                                likeMethod!,
+                                Expression.Property(null, typeof(EF), nameof(EF.Functions)),
+                                coalesce,
+                                Expression.Constant($"%{term}%")
+                            );
+                        }
+                        else
+                        {
+                            // 2) 布林欄位
+                            if (underlying == typeof(bool))
+                            {
+                                bool parsedBool;
+                                if (lower is "true" or "false" or "1" or "0" or "y" or "n" or "yes" or "no" or "是" or "否")
+                                {
+                                    parsedBool = lower is "true" or "1" or "y" or "yes" or "是";
+                                    predicateForThisProp = BuildEqualsPredicate(prop, parsedBool);
+                                }
+                            }
+                            // 3) Guid
+                            else if (underlying == typeof(Guid))
+                            {
+                                if (Guid.TryParse(term, out var g))
+                                {
+                                    predicateForThisProp = BuildEqualsPredicate(prop, g);
+                                }
+                            }
+                            // 4) 日期/時間
+                            else if (underlying == typeof(DateTime))
+                            {
+                                if (DateTime.TryParse(term, out var dt))
+                                {
+                                    // 簡化：精確等值（如需以日期天為單位，可改成區間條件）
+                                    predicateForThisProp = BuildEqualsPredicate(prop, dt);
+                                }
+                            }
+                            else if (underlying.FullName == "System.DateOnly")
+                            {
+                                if (DateOnly.TryParse(term, out var d))
+                                {
+                                    predicateForThisProp = BuildEqualsPredicate(prop, d);
+                                }
+                            }
+                            // 5) 數值型別（常見）
+                            else if (underlying == typeof(int))
+                            {
+                                if (int.TryParse(term, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v))
+                                {
+                                    predicateForThisProp = BuildEqualsPredicate(prop, v);
+                                }
+                            }
+                            else if (underlying == typeof(long))
+                            {
+                                if (long.TryParse(term, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v))
+                                {
+                                    predicateForThisProp = BuildEqualsPredicate(prop, v);
+                                }
+                            }
+                            else if (underlying == typeof(short))
+                            {
+                                if (short.TryParse(term, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v))
+                                {
+                                    predicateForThisProp = BuildEqualsPredicate(prop, v);
+                                }
+                            }
+                            else if (underlying == typeof(byte))
+                            {
+                                if (byte.TryParse(term, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v))
+                                {
+                                    predicateForThisProp = BuildEqualsPredicate(prop, v);
+                                }
+                            }
+                            else if (underlying == typeof(decimal))
+                            {
+                                if (decimal.TryParse(term, NumberStyles.Number, CultureInfo.InvariantCulture, out var v))
+                                {
+                                    predicateForThisProp = BuildEqualsPredicate(prop, v);
+                                }
+                            }
+                            else if (underlying == typeof(double))
+                            {
+                                if (double.TryParse(term, NumberStyles.Number, CultureInfo.InvariantCulture, out var v))
+                                {
+                                    predicateForThisProp = BuildEqualsPredicate(prop, v);
+                                }
+                            }
+                            else if (underlying == typeof(float))
+                            {
+                                if (float.TryParse(term, NumberStyles.Number, CultureInfo.InvariantCulture, out var v))
+                                {
+                                    predicateForThisProp = BuildEqualsPredicate(prop, v);
+                                }
+                            }
+                            // 6) Enum（名稱或數值）
+                            else if (underlying.IsEnum)
+                            {
+                                object? enumValue = null;
+                                try
+                                {
+                                    enumValue = Enum.Parse(underlying, term, true);
+                                }
+                                catch
+                                {
+                                    if (long.TryParse(term, NumberStyles.Integer, CultureInfo.InvariantCulture, out var raw))
+                                    {
+                                        enumValue = Enum.ToObject(underlying, raw);
+                                    }
+                                }
+
+                                if (enumValue != null)
+                                {
+                                    predicateForThisProp = BuildEqualsPredicate(prop, enumValue);
+                                }
+                            }
+                        }
+
+                        if (predicateForThisProp != null)
+                        {
+                            orBody = orBody == null ? predicateForThisProp : Expression.OrElse(orBody, predicateForThisProp);
+                        }
+                    }
+
+                    if (orBody != null)
+                    {
+                        var lambda = Expression.Lambda<Func<T, bool>>(orBody, parameter);
+                        query = query.Where(lambda);
                     }
                 }
             }
@@ -54,7 +238,6 @@ namespace SewingManagment.Extensions
                 if (prop != null)
                 {
                     bool descending = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase);
-
                     query = descending
                         ? query.OrderByDescending(x => EF.Property<object>(x, prop.Name))
                         : query.OrderBy(x => EF.Property<object>(x, prop.Name));
@@ -63,6 +246,7 @@ namespace SewingManagment.Extensions
 
             return query;
         }
+
 
     }
 }

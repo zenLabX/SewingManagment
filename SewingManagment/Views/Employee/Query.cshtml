@@ -11,50 +11,62 @@
 <link rel="stylesheet" href="~/css/employee.css" />
 
 @* 搜尋表單 *@
-<ul class="nav nav-pills nav-fill" id="searchNav">
-    <li class="nav-item m-0">
-        <a class="nav-link active" data-target="simple-search" href="#">簡易搜尋</a>
+<ul class="nav nav-pills nav-fill" id="searchNav" role="tablist">
+    <li class="nav-item m-0" role="presentation">
+        <button class="nav-link active" id="simple-tab" data-bs-toggle="tab" data-bs-target="#simple-search"
+                type="button" role="tab" aria-controls="simple-search" aria-selected="true">簡易搜尋</button>
     </li>
-    <li class="nav-item m-0">
-        <a class="nav-link" data-target="advanced-search" href="#">進階搜尋</a>
+    <li class="nav-item m-0" role="presentation">
+        <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced-search"
+                type="button" role="tab" aria-controls="advanced-search" aria-selected="false">進階搜尋</button>
     </li>
+    
 </ul>
 
-<div class="tab-content bg-light-gray">
-    <div id="simple-search">
-        <h4>簡易搜尋</h4>
+<div class="tab-content bg-light-gray p-3">
+    <div class="tab-pane fade show active" id="simple-search" role="tabpanel" aria-labelledby="simple-tab">
+        <h4 class="mb-3">簡易搜尋</h4>
         <form asp-controller="Employee" asp-action="Query" method="post" class="mb-4">
-            <div class="input-group">
-                <!-- 排序欄位 -->
-                <select class="form-select" name="SortField" asp-for="ViewModel.SortField"
-                        asp-items="@(default(EmployeeEnums.EmployeeSortField).ToSelectList())">
-                    <option value="">-- 請選擇排序欄位 --</option>
-                </select>
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-4">
+                    <label class="form-label" for="SortField">排序欄位</label>
+                    <select class="form-select" id="SortField" name="SortField" asp-for="ViewModel.SortField"
+                            asp-items="@(default(EmployeeEnums.EmployeeSortField).ToSelectList())">
+                        <option value="">-- 請選擇排序欄位 --</option>
+                    </select>
+                </div>
 
-                <!-- 排序方向 -->
-                <select class="form-select" name="SortDirection">
-                    <option value="ASC" selected="@("ASC" == Model.ViewModel.SortDirection)">升冪 ↑</option>
-                    <option value="DESC" selected="@("DESC" == Model.ViewModel.SortDirection)">降冪 ↓</option>
-                </select>
+                <div class="col-12 col-md-3">
+                    <label class="form-label" for="SortDirection">排序方向</label>
+                    <select class="form-select" id="SortDirection" name="SortDirection" asp-for="ViewModel.SortDirection">
+                        <option value="ASC">升冪 ↑</option>
+                        <option value="DESC">降冪 ↓</option>
+                    </select>
+                </div>
 
-                <!-- 搜尋欄 -->
-                <input type="text" class="form-control" placeholder="全文檢索"
-                       name="SearchTerm" value="@Model.ViewModel.SearchTerm" />
+                <div class="col-12 col-md-5">
+                    <label class="form-label" for="SearchTerm">搜尋關鍵字</label>
+                    <input type="text" class="form-control" id="SearchTerm" name="SearchTerm" asp-for="ViewModel.SearchTerm"
+                           placeholder="全文檢索" />
+                </div>
 
-                <input type="hidden" name="PageNumber" value="1" />
-                <input type="hidden" name="PageSize" value="@Model.ViewModel.PageSize" />
+                <input type="hidden" asp-for="ViewModel.PageNumber" value="1" />
+                <input type="hidden" asp-for="ViewModel.PageSize" />
 
-                <button class="btn btn-outline-secondary" type="submit">搜尋</button>
+                <div class="col-12 d-flex gap-2">
+                    <button class="btn btn-primary" type="submit">搜尋</button>
+                    <button class="btn btn-outline-secondary" type="reset">清除</button>
+                </div>
             </div>
         </form>
     </div>
-    <div id="advanced-search" style="display:none;">
-        <h4>進階搜尋</h4>
-        <p>這裡是進階搜尋的內容。</p>
+    <div class="tab-pane fade" id="advanced-search" role="tabpanel" aria-labelledby="advanced-tab">
+        <h4 class="mb-3">進階搜尋</h4>
+        <p class="text-muted">這裡是進階搜尋的內容。</p>
     </div>
 </div>
 
-<div class="mb-4 d-flex justify-content-end">
+<div class="mt-3 pe-2 py-2 d-flex justify-content-end bg-light-gray">
     <a class="btn btn-primary px-4" asp-controller="Employee" asp-action="Create">新增</a>
 </div>
 
@@ -123,28 +135,6 @@
         });
 
 
-        // 切換搜尋顯示區塊
-        const navLinks = document.querySelectorAll('#searchNav .nav-link');
-        const tabContents = document.querySelectorAll('.tab-content > div');
-
-        navLinks.forEach(link => {
-          link.addEventListener('click', function(e) {
-            e.preventDefault();
-
-            // 切換 active
-            navLinks.forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-
-            // 顯示對應區塊
-            const target = this.dataset.target;
-            tabContents.forEach(tc => {
-              if (tc.id === target) {
-                tc.style.display = 'block';
-              } else {
-                tc.style.display = 'none';
-              }
-            });
-          });
-        });
+        // 使用 Bootstrap Tabs，無需自訂分頁切換 JS
     </script>
 }
