@@ -8,19 +8,51 @@
     /* 整個 View 的共用資訊，例如標題、說明文字、頁面層級設定等 */
     ViewData["Title"] = "員工資料列表";
 }
+<link rel="stylesheet" href="~/css/employee.css" />
 
 @* 搜尋表單 *@
-<form asp-controller="Employee" asp-action="Query" method="post" class="mb-4">
-    <div class="input-group">
-        <select class="form-select" name="SearchField"
-                asp-items="@(default(EmployeeSearchField).ToSelectList())">
-        </select>
-        <input type="text" class="form-control" placeholder="搜尋內容..." name="SearchTerm" value="@Model.ViewModel.SearchTerm" />
-        <input type="hidden" name="PageNumber" value="1" />
-        <input type="hidden" name="PageSize" value="@Model.ViewModel.PageSize" />
-        <button class="btn btn-outline-secondary" type="submit">搜尋</button>
+<ul class="nav nav-pills nav-fill" id="searchNav">
+    <li class="nav-item m-0">
+        <a class="nav-link active" data-target="simple-search" href="#">簡易搜尋</a>
+    </li>
+    <li class="nav-item m-0">
+        <a class="nav-link" data-target="advanced-search" href="#">進階搜尋</a>
+    </li>
+</ul>
+
+<div class="tab-content bg-light-gray">
+    <div id="simple-search">
+        <h4>簡易搜尋</h4>
+        <form asp-controller="Employee" asp-action="Query" method="post" class="mb-4">
+            <div class="input-group">
+                <!-- 排序欄位 -->
+                <select class="form-select" name="SortField" asp-for="ViewModel.SortField"
+                        asp-items="@(default(EmployeeEnums.EmployeeSortField).ToSelectList())">
+                    <option value="">-- 請選擇排序欄位 --</option>
+                </select>
+
+                <!-- 排序方向 -->
+                <select class="form-select" name="SortDirection">
+                    <option value="ASC" selected="@("ASC" == Model.ViewModel.SortDirection)">升冪 ↑</option>
+                    <option value="DESC" selected="@("DESC" == Model.ViewModel.SortDirection)">降冪 ↓</option>
+                </select>
+
+                <!-- 搜尋欄 -->
+                <input type="text" class="form-control" placeholder="全文檢索"
+                       name="SearchTerm" value="@Model.ViewModel.SearchTerm" />
+
+                <input type="hidden" name="PageNumber" value="1" />
+                <input type="hidden" name="PageSize" value="@Model.ViewModel.PageSize" />
+
+                <button class="btn btn-outline-secondary" type="submit">搜尋</button>
+            </div>
+        </form>
     </div>
-</form>
+    <div id="advanced-search" style="display:none;">
+        <h4>進階搜尋</h4>
+        <p>這裡是進階搜尋的內容。</p>
+    </div>
+</div>
 
 <div class="mb-4 d-flex justify-content-end">
     <a class="btn btn-primary px-4" asp-controller="Employee" asp-action="Create">新增</a>
@@ -88,6 +120,31 @@
                     alert('刪除失敗');
                 }
             });
+        });
+
+
+        // 切換搜尋顯示區塊
+        const navLinks = document.querySelectorAll('#searchNav .nav-link');
+        const tabContents = document.querySelectorAll('.tab-content > div');
+
+        navLinks.forEach(link => {
+          link.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // 切換 active
+            navLinks.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+
+            // 顯示對應區塊
+            const target = this.dataset.target;
+            tabContents.forEach(tc => {
+              if (tc.id === target) {
+                tc.style.display = 'block';
+              } else {
+                tc.style.display = 'none';
+              }
+            });
+          });
         });
     </script>
 }

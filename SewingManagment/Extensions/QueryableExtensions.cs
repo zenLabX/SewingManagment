@@ -7,37 +7,63 @@ namespace SewingManagment.Extensions
 {
     public static class QueryableExtensions
     {
-        public static IQueryable<T> ApplySearch<T>(this IQueryable<T> query, string? searchTerm, string? fieldsCsv)
+        public static IQueryable<T> ApplySearchAndSort<T>(this IQueryable<T> query, string? searchTerm, string? fieldsCsv, string? sortField, string? sortDirection)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm) || string.IsNullOrWhiteSpace(fieldsCsv))
-                return query;
-
-            var fields = fieldsCsv.Split(',')
-                                  .Select(f => f.Trim())
-                                  .Where(f => !string.IsNullOrEmpty(f))
-                                  .ToList();
-
-            if (!fields.Any()) return query;
-
-            var stringProps = typeof(T).GetProperties()
-                                       .Where(p => p.PropertyType == typeof(string))
-                                       .ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
-
-            var validFields = fields.Where(f => stringProps.ContainsKey(f)).ToList();
-            if (!validFields.Any()) return query;
-
-            // EF 支援的多欄位模糊搜尋
-            IQueryable<T> result = query;
-
-            foreach (var field in validFields)
+            // --- 搜尋邏輯 ---
+            if (!string.IsNullOrWhiteSpace(searchTerm) && !string.IsNullOrWhiteSpace(fieldsCsv))
             {
-                var prop = stringProps[field];
-                result = result.Where(x => EF.Property<string>(x, prop.Name) != null &&
-                                           EF.Property<string>(x, prop.Name).Contains(searchTerm));
+                var fields = fieldsCsv.Split(',')
+                                      .Select(f => f.Trim())
+                                      .Where(f => !string.IsNullOrEmpty(f))
+                                      .ToList();
+
+                if (fields.Any())
+                {
+                    var stringProps = typeof(T).GetProperties()
+                                               .Where(p => p.PropertyType == typeof(string))
+                                               .ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
+
+                    var validFields = fields.Where(f => stringProps.ContainsKey(f)).ToList();
+
+                    if (validFields.Any())
+                    {
+                        // 多欄位模糊搜尋
+                        IQueryable<T> searchQuery = query;
+
+                        foreach (var field in validFields)
+                        {
+                            var propName = field;
+                            searchQuery = searchQuery.Where(x =>
+                                EF.Property<string>(x, propName) != null &&
+                                EF.Property<string>(x, propName).Contains(searchTerm));
+                        }
+
+                        query = searchQuery;
+                    }
+                }
             }
 
-            return result;
+            // --- 排序邏輯 ---
+            if (!string.IsNullOrWhiteSpace(sortField))
+            {
+                var prop = typeof(T).GetProperty(sortField,
+                            System.Reflection.BindingFlags.IgnoreCase |
+                            System.Reflection.BindingFlags.Public |
+                            System.Reflection.BindingFlags.Instance);
+
+                if (prop != null)
+                {
+                    bool descending = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+
+                    query = descending
+                        ? query.OrderByDescending(x => EF.Property<object>(x, prop.Name))
+                        : query.OrderBy(x => EF.Property<object>(x, prop.Name));
+                }
+            }
+
+            return query;
         }
+
     }
 }
 

@@ -22,6 +22,8 @@ namespace SewingManagment.Helpers
                 Items = items,
                 SearchTerm = queryViewModel.SearchTerm,
                 SearchField = queryViewModel.SearchField,
+                SortDirection = queryViewModel.SortDirection,
+                SortField = queryViewModel.SortField,
                 PageNumber = queryViewModel.PageNumber,
                 PageSize = queryViewModel.PageSize,
                 TotalCount = totalCount,

@@ -28,7 +28,7 @@ namespace SewingManagment.Controllers
             var employees = _context.Employees.AsQueryable();
 
             // 使用擴充方法進行動態搜尋
-            employees = employees.ApplySearch(queryModel.SearchTerm, queryModel.SearchField);
+            employees = employees.ApplySearchAndSort(queryModel.SearchTerm, queryModel.SearchField, queryModel.SortField, queryModel.SortDirection);
 
             // 使用 async 分頁
             PaginatedViewModel<Employee> paginatedData = await PaginationHelper.ToPaginatedViewModel(employees, queryModel);
@@ -50,7 +50,7 @@ namespace SewingManagment.Controllers
             var employees = _context.Employees.AsQueryable();
 
             // 使用擴充方法進行動態搜尋
-            employees = employees.ApplySearch(queryModel.SearchTerm, queryModel.SearchField);
+            employees = employees.ApplySearchAndSort(queryModel.SearchTerm, queryModel.SearchField, queryModel.SortField, queryModel.SortDirection);
 
             // 使用 async 分頁
             PaginatedViewModel<Employee> paginatedData = await PaginationHelper.ToPaginatedViewModel(employees, queryModel);
