@@ -17,6 +17,7 @@ namespace SewingManagment.UI
                     { "Gender", "性別" },
                     { "Position", "職務" }
                 },
+                // 可根據資料客製化 FormatFunc
                 FormatFunc = (item, col) =>
                 {
                     var e = (Employee)item;
@@ -33,8 +34,11 @@ namespace SewingManagment.UI
                     };
                 },
                 RowClassFunc = e => e.Position == "03" ? "table-warning" : "",
+                // Note: Tag helpers (asp-*) are not processed when emitting HTML from a string in code.
+                // Generate normal href links so the Edit button actually navigates.
+                // 需要手動改跳轉到指定頁
                 ActionsFunc = e => new HtmlString($@"
-                <a class='btn btn-warning px-4' asp-controller='Employee' asp-action='Edit' asp-route-id='{e.Id}'>編輯</a>
+                <a class='btn btn-warning px-4' href='/Employee/Edit/{e.Id}'>編輯</a>
                 <a class='btn btn-danger px-4 btn-delete' data-id='{e.Id}'>刪除</a>")
             };
         }

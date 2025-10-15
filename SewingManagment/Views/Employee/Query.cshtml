@@ -8,48 +8,11 @@
     /* 整個 View 的共用資訊，例如標題、說明文字、頁面層級設定等 */
     ViewData["Title"] = "員工資料列表";
 }
-@* @{
-    /* _Table.cshtml 的設定 */
-    var tableHeaders = new Dictionary<string, string>
-    {
-        { "Id", "工號" },
-        { "Name", "姓名" },
-        { "Gender", "性別" },
-        { "Position", "職務" }
-    };
-
-    /* 定義欄位順序 */
-    var tableColumns = new List<string> { "Id", "Name", "Gender", "Position" };
-
-    /* 可選：設定每列的 class */
-    Func<dynamic, string> tableRowClassFunc = e => e.Position == "03" ? "table-warning" : "";
-
-    /*
-     * 可選：設定操作按鈕
-     * 使用 a 標籤而不是 button 標籤，因為 a 標籤可以傳遞 id
-     */
-    Func<dynamic, Microsoft.AspNetCore.Html.IHtmlContent> tableActionsFunc = e =>
-    {
-        var editUrl = $"/Employee/Edit/{e.Id}";
-        return new HtmlString($@"
-            <a class='btn btn-warning px-4' href='{editUrl}'>編輯</a>
-            <a class='btn btn-danger px-4 btn-delete' data-id='{e.Id}'>刪除</a>
-        ");
-    };
-
-    var tableViewData = new ViewDataDictionary(ViewData)
-    {
-        { "Headers", tableHeaders },
-        { "Columns", tableColumns },
-        { "RowClassFunc", tableRowClassFunc },
-        { "ActionsFunc", tableActionsFunc }
-    };
-} *@
 
 @* 搜尋表單 *@
 <form asp-controller="Employee" asp-action="Query" method="post" class="mb-4">
     <div class="input-group">
-        <select class="form-select" asp-for="ViewModel.SearchField"
+        <select class="form-select" name="SearchField"
                 asp-items="@(default(EmployeeSearchField).ToSelectList())">
         </select>
         <input type="text" class="form-control" placeholder="搜尋內容..." name="SearchTerm" value="@Model.ViewModel.SearchTerm" />
@@ -63,7 +26,8 @@
     <a class="btn btn-primary px-4" asp-controller="Employee" asp-action="Create">新增</a>
 </div>
 
-@await Html.PartialAsync("_Table", Model)
+@* LINQ 的 Cast<T>() 擴充方法，用來把集合中的元素轉型成特定型別。 *@
+@await Html.PartialAsync("_Table", (Items: Model.ViewModel.Items.Cast<dynamic>(), Config: Model.Config))
 
 @* pagination 元件 *@
 <nav aria-label="員工分頁導航">
