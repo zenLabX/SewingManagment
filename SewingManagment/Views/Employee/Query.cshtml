@@ -249,32 +249,19 @@
 @* LINQ 的 Cast<T>() 擴充方法，用來把集合中的元素轉型成特定型別。 *@
 @await Html.PartialAsync("_Table", (Items: Model.ViewModel.Items.Cast<dynamic>(), Config: Model.Config))
 
-@* pagination 元件 *@
-<nav aria-label="分頁導航">
-    <ul class="pagination justify-content-center">
-        <li class="page-item @(Model.ViewModel.PageNumber <= 1 ? "disabled" : "")">
-            <a class="page-link" href="#" onclick="submitForm(@(Model.ViewModel.PageNumber - 1))">上一頁</a>
-        </li>
-        @for (int i = 1; i <= Model.ViewModel.TotalPages; i++)
-        {
-            <li class="page-item @(i == Model.ViewModel.PageNumber ? "active" : "")">
-                <a class="page-link" href="#" onclick="submitForm(@i)">@i</a>
-            </li>
-        }
-        <li class="page-item @(Model.ViewModel.PageNumber >= Model.ViewModel.TotalPages ? "disabled" : "")">
-            <a class="page-link" href="#" onclick="submitForm(@(Model.ViewModel.PageNumber + 1))">下一頁</a>
-        </li>
-    </ul>
-</nav>
+@* pagination 元件（由前端模組化渲染，使用 data-* 傳遞 server 初始值） *@
+<div id="paginationContainer"
+     data-total-pages="@Model.ViewModel.TotalPages"
+     data-current-page="@Model.ViewModel.PageNumber">
+</div>
 
-@* 透過 pagination 能發請求 *@
+@* 透過 pagination 能發請求（保留隱藏表單作為後備） *@
 <form id="paginationForm" asp-controller="Employee" asp-action="Query" method="post" style="display:none;">
     <input type="hidden" name="SearchTerm" value="@Model.ViewModel.SearchTerm" />
     <input type="hidden" name="SearchField" value="@Model.ViewModel.SearchField" />
     <input type="hidden" name="PageNumber" id="pageNumberInput" value="@Model.ViewModel.PageNumber" />
     <input type="hidden" name="PageSize" value="@Model.ViewModel.PageSize" />
 </form>
-@* pagination 元件 *@
 
 @if (TempData["Message"] != null)
 {
@@ -282,5 +269,5 @@
 }
 
 @section Scripts {
-    <script src="~/js/Employee/index.js"></script>
+    <script type="module" src="~/js/Employee/index.js"></script>
 }
