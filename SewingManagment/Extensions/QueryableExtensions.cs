@@ -4,18 +4,19 @@ using System.Linq;
 using System.Reflection;
 using System.Linq.Expressions;
 using System.Globalization;
+using SewingManagment.ViewModels;
 
 namespace SewingManagment.Extensions
 {
     public static class QueryableExtensions
     {
-        public static IQueryable<T> ApplySearchAndSort<T>(
-            this IQueryable<T> query,
-            string? searchTerm,
-            string? fieldsCsv,
-            string? sortField,
-            string? sortDirection)
+        public static IQueryable<T> ApplySearchAndSort<T>(this IQueryable<T> query, QueryViewModel queryModel)
         {
+            var searchTerm = queryModel.SearchTerm;
+            var fieldsCsv = queryModel.SearchField;
+            var sortField = queryModel.SortField;
+            var sortDirection = queryModel.SortDirection;
+
             // --- 搜尋邏輯 ---
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
