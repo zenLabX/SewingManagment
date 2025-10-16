@@ -28,26 +28,25 @@
         <h4 class="mb-3">簡易搜尋</h4>
         <form asp-controller="Employee" asp-action="Query" method="post" class="mb-4">
             <div class="row g-3 align-items-end">
-                <div class="col-12 col-md-4">
-                    <label class="form-label" for="SortField">排序欄位</label>
+                <div class="col-12 col-md-7">
+                    <label class="form-label" for="SearchTerm">全文檢索</label>
+                    <input type="text" class="form-control" id="SearchTerm" name="SearchTerm" asp-for="ViewModel.SearchTerm"
+                           placeholder="請輸入關鍵字" />
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label" for="SortField">排序依據</label>
                     <select class="form-select" id="SortField" name="SortField" asp-for="ViewModel.SortField"
                             asp-items="@(default(EmployeeEnums.EmployeeSortField).ToSelectList())">
-                        <option value="">-- 請選擇排序欄位 --</option>
+                        <option value="">-- 請選擇 --</option>
                     </select>
                 </div>
 
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-2">
                     <label class="form-label" for="SortDirection">排序方向</label>
                     <select class="form-select" id="SortDirection" name="SortDirection" asp-for="ViewModel.SortDirection">
                         <option value="ASC">升冪 ↑</option>
                         <option value="DESC">降冪 ↓</option>
                     </select>
-                </div>
-
-                <div class="col-12 col-md-5">
-                    <label class="form-label" for="SearchTerm">搜尋關鍵字</label>
-                    <input type="text" class="form-control" id="SearchTerm" name="SearchTerm" asp-for="ViewModel.SearchTerm"
-                           placeholder="全文檢索" />
                 </div>
 
                 <input type="hidden" asp-for="ViewModel.PageNumber" value="1" />
