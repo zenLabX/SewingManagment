@@ -26,9 +26,12 @@
     <footer class="border-top footer text-muted">
         @await Html.PartialAsync("_Footer")
     </footer>
+    @* 全域（global）的 JavaScript 都會在 _Layout.cshtml 中引入 *@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/advanced-search.js" asp-append-version="true"></script>
+    @* 在版型的這裡，預留一個插槽叫做 Scripts，可置入每個頁面個別的 JavaScript *@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
