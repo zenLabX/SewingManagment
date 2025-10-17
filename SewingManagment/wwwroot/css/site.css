@@ -29,3 +29,20 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/** 表單元件配色 */
+.bg-light-gray {
+    background-color: #F8F8F8;
+}
+
+.bg-dark-gray {
+    background-color: #555555;
+}
+
+/*專案的 nav 都不要變色*/
+.nav-pills .nav-link:hover {
+    background-color: none !important;
+    color: currentColor !important;
+    border-color: none !important;
+    box-shadow: none !important;
+}

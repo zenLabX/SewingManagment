@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="~/css/employee.css" />
 
 @* 搜尋表單 *@
-<ul class="nav nav-pills nav-fill" id="searchNav" role="tablist">
+<ul class="nav nav-pills nav-fill bg-dark-gray p-1 rounded-3 mb-2" id="searchNav" role="tablist">
     <li class="nav-item m-0" role="presentation">
         <button class="nav-link active" id="simple-tab" data-bs-toggle="tab" data-bs-target="#simple-search"
                 type="button" role="tab" aria-controls="simple-search" aria-selected="true">
@@ -24,10 +24,9 @@
             進階搜尋
         </button>
     </li>
-
 </ul>
 
-<div class="tab-content bg-light-gray p-3">
+<div class="tab-content bg-light-gray rounded-3 p-3">
     <div class="tab-pane fade show active" id="simple-search" role="tabpanel" aria-labelledby="simple-tab">
         <h4 class="mb-3">簡易搜尋</h4>
         <form asp-controller="Employee" asp-action="Query" method="post" class="mb-4">
