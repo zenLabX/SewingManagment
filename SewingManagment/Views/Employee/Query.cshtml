@@ -71,7 +71,7 @@
 
     @*進階搜尋*@
 <div class="tab-pane fade" id="advanced-search" role="tabpanel" aria-labelledby="advanced-tab">
-    @* 進階搜尋中的 tab: 欄位搜尋 & 多條件式搜尋 *@
+    @* 進階搜尋中的 tab-list: 欄位搜尋 & 多條件式搜尋 *@
     <form id="advancedForm" asp-controller="Employee" asp-action="Query" method="post" class="mb-4">
         <div class="mb-4 adv-tabs" role="tablist" aria-label="進階搜尋模式">
             <input type="radio" id="adv_mode_field" name="advMode" value="field" checked hidden />
@@ -81,12 +81,13 @@
             <label class="adv-tab fw-bold" for="adv_mode_multi" role="tab">多條件式搜尋</label>
         </div>
 
+        @*欄位搜尋--表單*@
         <div id="field-search-mode" class="mb-4">
-            @*<h5 class="mb-2">欄位搜尋</h5>*@
             <div id="fieldSearchContainer">
-                <div class="row g-2 align-items-end condition-row p-4">
-                    <div class="col-md-4">
-                        <label class="form-label">欄位</label>
+                <div class="row gy-2 align-items-end condition-row p-4">
+                    <h5 class="fw-bold">欄位搜尋</h5>
+                    <div class="col-md-12">
+                        <label class="form-label">選擇搜尋欄位</label>
                         <select class="form-select condition-field" name="Conditions[0].Field">
                             <option value="">-- 請選擇欄位 --</option>
                             @foreach (var f in Enum.GetValues(typeof(EmployeeEnums.EmployeeSearchField)).Cast<EmployeeEnums.EmployeeSearchField>())
@@ -99,78 +100,75 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label">運算</label>
-                        <select class="form-select condition-operator" name="Conditions[0].Operator">
-                            <option value="Contains">包含</option>
-                            <option value="Equals">等於</option>
-                            <option value="StartsWith">開頭為</option>
-                            <option value="EndsWith">結尾為</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label">值</label>
+                    <div class="col-md-12">
+                        <label class="form-label">搜尋內容</label>
                         <input type="text" class="form-control condition-value" name="Conditions[0].Value" />
                     </div>
 
-                    <div class="col-md-1 text-end">
-                        <button type="button" class="btn btn-outline-danger btn-remove-condition">移除</button>
-                    </div>
                 </div>
-            </div>
-
-            <div class="mt-2 p-4">
-                <button type="button" id="addConditionBtn" class="btn btn-sm btn-secondary">新增條件</button>
-                <small class="text-muted ms-2">可以新增多個條件，搜尋時會依照條件索引進行組合。</small>
             </div>
         </div>
 
-        <div id="multi-search-mode" class="mb-4">
-            @*<h5 class="mb-2">多條件式搜尋 (邏輯與動態排序)</h5>*@
-
-            <div class="row g-2 align-items-end mb-3">
-                <div class="col-md-3">
-                    <label class="form-label">條件連接詞 (AND / OR)</label>
+        @*多條件式搜尋--表單*@
+    <div id="multi-search-mode" class="mb-4 p-4">
+        <h5 class="fw-bold mb-4">多條件式搜尋</h5>
+        <div class="row align-items-end p-4 bg-white rounded-4 mb-4">
+            <p class="fw-bold px-0 mb-0">動態查詢條件</p>
+            @*以下會出現一格一格的查詢條件*@
+            <div class="row g-3 bg-light-gray py-4 rounded-2 mb-4">
+                <div class="col-12 col-md-3">
                     <select id="globalConnector" class="form-select" name="GlobalConnector">
                         <option value="AND">AND</option>
                         <option value="OR">OR</option>
                     </select>
                 </div>
-            </div>
+                <div class="col-11 col-md-8">
+                    @*<label class="form-label">選擇搜尋欄位</label>*@
+                    <select class="form-select condition-field" name="Conditions[0].Field">
+                        <option value="">-- 請選擇欄位 --</option>
+                        @foreach (var f in Enum.GetValues(typeof(EmployeeEnums.EmployeeSearchField)).Cast<EmployeeEnums.EmployeeSearchField>())
+                        {
+                            var mem = typeof(EmployeeEnums.EmployeeSearchField).GetMember(f.ToString());
+                            var disp = mem.First().GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
+                                        .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault()?.Name ?? f.ToString();
+                            <option value="@f">@disp</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-1 col-md-1">
+                    <div class="wrap d-flex justify-content-start">
+                        <button class="btn btn-danger">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
 
-            <label class="form-label">排序 (可新增多項)</label>
-            <div id="sortContainer">
-                <div class="row g-2 align-items-end sort-row mb-2">
-                    <div class="col-md-6">
-                        <select class="form-select sort-field" name="Sorts[0].Field">
-                            <option value="">-- 請選擇 --</option>
-                            @foreach (var s in Enum.GetValues(typeof(EmployeeEnums.EmployeeSortField)).Cast<EmployeeEnums.EmployeeSortField>())
-                            {
-                                var mem = typeof(EmployeeEnums.EmployeeSortField).GetMember(s.ToString());
-                                var disp = mem.First().GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
-                                            .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault()?.Name ?? s.ToString();
-                                <option value="@s">@disp</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <select class="form-select sort-direction" name="Sorts[0].Direction">
-                            <option value="ASC">升冪 ↑</option>
-                            <option value="DESC">降冪 ↓</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 text-end">
-                        <button type="button" class="btn btn-outline-danger btn-remove-sort">移除</button>
-                    </div>
+                <div class="col-md-3">
+                    <select id="compoundCondition" class="form-select" name="compoundCondition">
+                        <option value="=">=</option>
+                        <option value=">">></option>
+                        <option value="<"><</option>
+                        <option value="LIKE">LIKE</option>
+                    </select>
+                </div>
+
+                <div class="col-md-9">
+                    <input type="text" class="form-control" placeholder="請輸入條件值" name="" />
                 </div>
             </div>
 
-            <div class="mt-2">
-                <button type="button" id="addSortBtn" class="btn btn-sm btn-secondary">新增排序</button>
-                <small class="text-muted ms-2">排序會以上到下的順序套用（第一項優先）。</small>
+            <div class="d-flex">
+                <button class="btn btn-primary me-2">
+                    <i class="fa-solid fa-plus"></i>
+                新增條件</button>
+                <button class="btn btn-primary">
+                    <i class="fa-solid fa-plus"></i>
+                    新增範圍條件
+                </button>
             </div>
-        </div>
+
+
+    </div>
 
         <input type="hidden" name="PageNumber" value="1" />
         <input type="hidden" name="PageSize" value="@Model.ViewModel.PageSize" />
@@ -209,9 +207,6 @@
             <div class="col-md-4">
                 <label class="form-label">值</label>
                 <input type="text" class="form-control condition-value" />
-            </div>
-            <div class="col-md-1 text-end">
-                <button type="button" class="btn btn-outline-danger btn-remove-condition">移除</button>
             </div>
         </div>
     </template>
