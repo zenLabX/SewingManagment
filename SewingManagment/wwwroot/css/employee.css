@@ -9,6 +9,44 @@ ul.nav .nav-link.active {
 }
 
 .tab-content>div {
-    padding: 15px;
+/*    padding: 15px;*/
     border-radius: 5px;
 }
+
+/* Advanced search tab-style radios */
+.adv-tabs {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    border-top: 1px solid rgba(0,0,0,0.12); /* make the tab row more obvious */
+}
+
+.adv-tab {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    color: #333;
+    border-top: 2px solid transparent; /* default transparent top border */
+    border-radius: 4px 4px 0 0;
+    background: transparent;
+    flex: 1 1 50%; /* make each tab take equal space */
+    text-align: center;
+    /* pull the tab up slightly so its top border visually sits on the container edge when active */
+    transition: margin-top 0.12s ease, background-color 0.12s ease;
+}
+
+/* When the corresponding hidden radio is checked, show the green 2px top border */
+#adv_mode_field:checked + .adv-tab,
+#adv_mode_multi:checked + .adv-tab {
+    border-top-color: #999;
+    border-top-style: solid;
+    border-top-width: 2px;
+    margin-top: -2px; /* visually overlap the container border */
+    background-color: white;
+    color: #234; /* darker text for active */
+}
+
+/* Focus/hover affordances */
+/*.adv-tab:hover,
+.adv-tab:focus {
+    background-color: rgba(0,0,0,0.03);
+}*/

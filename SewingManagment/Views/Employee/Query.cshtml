@@ -11,32 +11,34 @@
 <link rel="stylesheet" href="~/css/employee.css" />
 
 @* 搜尋表單 *@
-<ul class="nav nav-pills nav-fill bg-dark-gray p-1 rounded-3 mb-2" id="searchNav" role="tablist">
-    <li class="nav-item m-0" role="presentation">
-        <button class="nav-link active" id="simple-tab" data-bs-toggle="tab" data-bs-target="#simple-search"
-                type="button" role="tab" aria-controls="simple-search" aria-selected="true">
-            簡易搜尋
-        </button>
-    </li>
-    <li class="nav-item m-0" role="presentation">
-        <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced-search"
-                type="button" role="tab" aria-controls="advanced-search" aria-selected="false">
-            進階搜尋
-        </button>
-    </li>
-</ul>
+<div class="wrap mb-5">
+    <ul class="nav nav-pills nav-fill bg-dark-gray p-1 rounded-3" id="searchNav" role="tablist">
+        <li class="nav-item m-0" role="presentation">
+            <button class="nav-link active" id="simple-tab" data-bs-toggle="tab" data-bs-target="#simple-search"
+                    type="button" role="tab" aria-controls="simple-search" aria-selected="true">
+                簡易搜尋
+            </button>
+        </li>
+        <li class="nav-item m-0" role="presentation">
+            <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced-search"
+                    type="button" role="tab" aria-controls="advanced-search" aria-selected="false">
+                進階搜尋
+            </button>
+        </li>
+    </ul>
+</div>
 
-<div class="tab-content bg-light-gray rounded-3 p-3">
+<div class="tab-content bg-light-gray rounded-3">
+    @*簡易搜尋*@
     <div class="tab-pane fade show active" id="simple-search" role="tabpanel" aria-labelledby="simple-tab">
-        <h4 class="mb-3">簡易搜尋</h4>
         <form asp-controller="Employee" asp-action="Query" method="post" class="mb-4">
-            <div class="row g-3 align-items-end">
-                <div class="col-12 col-md-7">
+            <div class="row g-3 align-items-end p-4">
+                <div class="col-12 col-md-12">
                     <label class="form-label" for="SearchTerm">全文檢索</label>
                     <input type="text" class="form-control" id="SearchTerm" name="SearchTerm" asp-for="ViewModel.SearchTerm"
-                           placeholder="請輸入關鍵字" />
+                           placeholder="請輸入關鍵字..." />
                 </div>
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-6">
                     <label class="form-label" for="SortField">排序依據</label>
                     <select class="form-select" id="SortField" name="SortField" asp-for="ViewModel.SortField"
                             asp-items="@(default(EmployeeEnums.EmployeeSortField).ToSelectList())">
@@ -44,203 +46,206 @@
                     </select>
                 </div>
 
-                <div class="col-12 col-md-2">
+                <div class="col-12 col-md-6">
                     <label class="form-label" for="SortDirection">排序方向</label>
-                    <select class="form-select" id="SortDirection" name="SortDirection" asp-for="ViewModel.SortDirection">
-                        <option value="ASC">升冪 ↑</option>
-                        <option value="DESC">降冪 ↓</option>
-                    </select>
+                    <br />
+                    <div class="btn-group w-100" role="tablist" aria-label="排序方向">
+                        <input type="radio" class="btn-check" asp-for="ViewModel.SortDirection" name="SortDirection" id="sortDirAsc" value="ASC" autocomplete="off" />
+                        <label class="btn btn-outline-secondary" for="sortDirAsc">升序</label>
+
+                        <input type="radio" class="btn-check" asp-for="ViewModel.SortDirection" name="SortDirection" id="sortDirDesc" value="DESC" autocomplete="off" />
+                        <label class="btn btn-outline-secondary" for="sortDirDesc">降序</label>
+                    </div>
                 </div>
 
                 <input type="hidden" asp-for="ViewModel.PageNumber" value="1" />
                 <input type="hidden" asp-for="ViewModel.PageSize" />
 
-                <div class="col-12 d-flex gap-2">
+                <div class="col-12 d-flex justify-content-end gap-2 mt-4">
                     <button class="btn btn-primary" type="submit">搜尋</button>
                     <button class="btn btn-outline-secondary" type="reset">清除</button>
                 </div>
             </div>
         </form>
     </div>
-    <div class="tab-pane fade" id="advanced-search" role="tabpanel" aria-labelledby="advanced-tab">
-        <h4 class="mb-3">進階搜尋</h4>
 
-        @* Advanced search form: dynamic field conditions + multiple sorts *@
-        <form id="advancedForm" asp-controller="Employee" asp-action="Query" method="post" class="mb-4">
-            <div class="mb-3 d-flex gap-2">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="advMode" id="modeField" value="field" checked>
-                    <label class="form-check-label" for="modeField">欄位搜尋</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="advMode" id="modeMulti" value="multi">
-                    <label class="form-check-label" for="modeMulti">多條件式搜尋</label>
-                </div>
-            </div>
+    @*進階搜尋*@
+<div class="tab-pane fade" id="advanced-search" role="tabpanel" aria-labelledby="advanced-tab">
+    @* 進階搜尋中的 tab: 欄位搜尋 & 多條件式搜尋 *@
+    <form id="advancedForm" asp-controller="Employee" asp-action="Query" method="post" class="mb-4">
+        <div class="mb-4 adv-tabs" role="tablist" aria-label="進階搜尋模式">
+            <input type="radio" id="adv_mode_field" name="advMode" value="field" checked hidden />
+            <label class="adv-tab fw-bold" for="adv_mode_field" role="tab">欄位搜尋</label>
 
-            <div id="field-search-mode" class="mb-4">
-                <h5 class="mb-2">欄位搜尋</h5>
-                <div id="fieldSearchContainer">
-                    <div class="row g-2 align-items-end condition-row">
-                        <div class="col-md-4">
-                            <label class="form-label">欄位</label>
-                            <select class="form-select condition-field" name="Conditions[0].Field">
-                                <option value="">-- 請選擇欄位 --</option>
-                                @foreach (var f in Enum.GetValues(typeof(EmployeeEnums.EmployeeSearchField)).Cast<EmployeeEnums.EmployeeSearchField>())
-                                {
-                                    var mem = typeof(EmployeeEnums.EmployeeSearchField).GetMember(f.ToString());
-                                    var disp = mem.First().GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
-                                                .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault()?.Name ?? f.ToString();
-                                    <option value="@f">@disp</option>
-                                }
-                            </select>
-                        </div>
+            <input type="radio" id="adv_mode_multi" name="advMode" value="multi" hidden />
+            <label class="adv-tab fw-bold" for="adv_mode_multi" role="tab">多條件式搜尋</label>
+        </div>
 
-                        <div class="col-md-3">
-                            <label class="form-label">運算</label>
-                            <select class="form-select condition-operator" name="Conditions[0].Operator">
-                                <option value="Contains">包含</option>
-                                <option value="Equals">等於</option>
-                                <option value="StartsWith">開頭為</option>
-                                <option value="EndsWith">結尾為</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">值</label>
-                            <input type="text" class="form-control condition-value" name="Conditions[0].Value" />
-                        </div>
-
-                        <div class="col-md-1 text-end">
-                            <button type="button" class="btn btn-outline-danger btn-remove-condition">移除</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-2">
-                    <button type="button" id="addConditionBtn" class="btn btn-sm btn-secondary">新增條件</button>
-                    <small class="text-muted ms-2">可以新增多個條件，搜尋時會依照條件索引進行組合。</small>
-                </div>
-            </div>
-
-            <div id="multi-search-mode" class="mb-4" style="display:none;">
-                <h5 class="mb-2">多條件式搜尋 (邏輯與動態排序)</h5>
-
-                <div class="row g-2 align-items-end mb-3">
-                    <div class="col-md-3">
-                        <label class="form-label">條件連接詞 (AND / OR)</label>
-                        <select id="globalConnector" class="form-select" name="GlobalConnector">
-                            <option value="AND">AND</option>
-                            <option value="OR">OR</option>
+        <div id="field-search-mode" class="mb-4">
+            @*<h5 class="mb-2">欄位搜尋</h5>*@
+            <div id="fieldSearchContainer">
+                <div class="row g-2 align-items-end condition-row p-4">
+                    <div class="col-md-4">
+                        <label class="form-label">欄位</label>
+                        <select class="form-select condition-field" name="Conditions[0].Field">
+                            <option value="">-- 請選擇欄位 --</option>
+                            @foreach (var f in Enum.GetValues(typeof(EmployeeEnums.EmployeeSearchField)).Cast<EmployeeEnums.EmployeeSearchField>())
+                            {
+                                var mem = typeof(EmployeeEnums.EmployeeSearchField).GetMember(f.ToString());
+                                var disp = mem.First().GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
+                                            .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault()?.Name ?? f.ToString();
+                                <option value="@f">@disp</option>
+                            }
                         </select>
                     </div>
-                </div>
 
-                <label class="form-label">排序 (可新增多項)</label>
-                <div id="sortContainer">
-                    <div class="row g-2 align-items-end sort-row mb-2">
-                        <div class="col-md-6">
-                            <select class="form-select sort-field" name="Sorts[0].Field">
-                                <option value="">-- 請選擇 --</option>
-                                @foreach (var s in Enum.GetValues(typeof(EmployeeEnums.EmployeeSortField)).Cast<EmployeeEnums.EmployeeSortField>())
-                                {
-                                    var mem = typeof(EmployeeEnums.EmployeeSortField).GetMember(s.ToString());
-                                    var disp = mem.First().GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
-                                                .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault()?.Name ?? s.ToString();
-                                    <option value="@s">@disp</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <select class="form-select sort-direction" name="Sorts[0].Direction">
-                                <option value="ASC">升冪 ↑</option>
-                                <option value="DESC">降冪 ↓</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2 text-end">
-                            <button type="button" class="btn btn-outline-danger btn-remove-sort">移除</button>
-                        </div>
+                    <div class="col-md-3">
+                        <label class="form-label">運算</label>
+                        <select class="form-select condition-operator" name="Conditions[0].Operator">
+                            <option value="Contains">包含</option>
+                            <option value="Equals">等於</option>
+                            <option value="StartsWith">開頭為</option>
+                            <option value="EndsWith">結尾為</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">值</label>
+                        <input type="text" class="form-control condition-value" name="Conditions[0].Value" />
+                    </div>
+
+                    <div class="col-md-1 text-end">
+                        <button type="button" class="btn btn-outline-danger btn-remove-condition">移除</button>
                     </div>
                 </div>
-
-                <div class="mt-2">
-                    <button type="button" id="addSortBtn" class="btn btn-sm btn-secondary">新增排序</button>
-                    <small class="text-muted ms-2">排序會以上到下的順序套用（第一項優先）。</small>
-                </div>
             </div>
 
-            <input type="hidden" name="PageNumber" value="1" />
-            <input type="hidden" name="PageSize" value="@Model.ViewModel.PageSize" />
-
-            <div class="d-flex gap-2">
-                <button class="btn btn-primary" type="submit">搜尋</button>
-                <button class="btn btn-outline-secondary" type="button" id="advancedResetBtn">清除</button>
+            <div class="mt-2 p-4">
+                <button type="button" id="addConditionBtn" class="btn btn-sm btn-secondary">新增條件</button>
+                <small class="text-muted ms-2">可以新增多個條件，搜尋時會依照條件索引進行組合。</small>
             </div>
-        </form>
+        </div>
 
-        @* Templates used by JS to clone rows. Server renders option lists inside templates so newly cloned rows have the same options. *@
-        <template id="condition-template">
-            <div class="row g-2 align-items-end condition-row">
-                <div class="col-md-4">
-                    <label class="form-label">欄位</label>
-                    <select class="form-select condition-field">
-                        <option value="">-- 請選擇欄位 --</option>
-                        @foreach (var f in Enum.GetValues(typeof(EmployeeEnums.EmployeeSearchField)).Cast<EmployeeEnums.EmployeeSearchField>())
-                        {
-                            var mem = typeof(EmployeeEnums.EmployeeSearchField).GetMember(f.ToString());
-                            var disp = mem.First().GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
-                                        .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault()?.Name ?? f.ToString();
-                            <option value="@f">@disp</option>
-                        }
-                    </select>
-                </div>
+        <div id="multi-search-mode" class="mb-4">
+            @*<h5 class="mb-2">多條件式搜尋 (邏輯與動態排序)</h5>*@
+
+            <div class="row g-2 align-items-end mb-3">
                 <div class="col-md-3">
-                    <label class="form-label">運算</label>
-                    <select class="form-select condition-operator">
-                        <option value="Contains">包含</option>
-                        <option value="Equals">等於</option>
-                        <option value="StartsWith">開頭為</option>
-                        <option value="EndsWith">結尾為</option>
+                    <label class="form-label">條件連接詞 (AND / OR)</label>
+                    <select id="globalConnector" class="form-select" name="GlobalConnector">
+                        <option value="AND">AND</option>
+                        <option value="OR">OR</option>
                     </select>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">值</label>
-                    <input type="text" class="form-control condition-value" />
-                </div>
-                <div class="col-md-1 text-end">
-                    <button type="button" class="btn btn-outline-danger btn-remove-condition">移除</button>
-                </div>
             </div>
-        </template>
 
-        <template id="sort-template">
-            <div class="row g-2 align-items-end sort-row mb-2">
-                <div class="col-md-6">
-                    <select class="form-select sort-field">
-                        <option value="">-- 請選擇 --</option>
-                        @foreach (var s in Enum.GetValues(typeof(EmployeeEnums.EmployeeSortField)).Cast<EmployeeEnums.EmployeeSortField>())
-                        {
-                            var mem = typeof(EmployeeEnums.EmployeeSortField).GetMember(s.ToString());
-                            var disp = mem.First().GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
-                                        .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault()?.Name ?? s.ToString();
-                            <option value="@s">@disp</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <select class="form-select sort-direction">
-                        <option value="ASC">升冪 ↑</option>
-                        <option value="DESC">降冪 ↓</option>
-                    </select>
-                </div>
-                <div class="col-md-2 text-end">
-                    <button type="button" class="btn btn-outline-danger btn-remove-sort">移除</button>
+            <label class="form-label">排序 (可新增多項)</label>
+            <div id="sortContainer">
+                <div class="row g-2 align-items-end sort-row mb-2">
+                    <div class="col-md-6">
+                        <select class="form-select sort-field" name="Sorts[0].Field">
+                            <option value="">-- 請選擇 --</option>
+                            @foreach (var s in Enum.GetValues(typeof(EmployeeEnums.EmployeeSortField)).Cast<EmployeeEnums.EmployeeSortField>())
+                            {
+                                var mem = typeof(EmployeeEnums.EmployeeSortField).GetMember(s.ToString());
+                                var disp = mem.First().GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
+                                            .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault()?.Name ?? s.ToString();
+                                <option value="@s">@disp</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select sort-direction" name="Sorts[0].Direction">
+                            <option value="ASC">升冪 ↑</option>
+                            <option value="DESC">降冪 ↓</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <button type="button" class="btn btn-outline-danger btn-remove-sort">移除</button>
+                    </div>
                 </div>
             </div>
-        </template>
-    </div>
+
+            <div class="mt-2">
+                <button type="button" id="addSortBtn" class="btn btn-sm btn-secondary">新增排序</button>
+                <small class="text-muted ms-2">排序會以上到下的順序套用（第一項優先）。</small>
+            </div>
+        </div>
+
+        <input type="hidden" name="PageNumber" value="1" />
+        <input type="hidden" name="PageSize" value="@Model.ViewModel.PageSize" />
+
+        <div class="d-flex gap-2 px-4">
+            <button class="btn btn-primary" type="submit">搜尋</button>
+            <button class="btn btn-outline-secondary" type="button" id="advancedResetBtn">清除</button>
+        </div>
+    </form>
+
+    @* Templates used by JS to clone rows. Server renders option lists inside templates so newly cloned rows have the same options. *@
+    <template id="condition-template">
+        <div class="row g-2 align-items-end condition-row">
+            <div class="col-md-4">
+                <label class="form-label">欄位</label>
+                <select class="form-select condition-field">
+                    <option value="">-- 請選擇欄位 --</option>
+                    @foreach (var f in Enum.GetValues(typeof(EmployeeEnums.EmployeeSearchField)).Cast<EmployeeEnums.EmployeeSearchField>())
+                    {
+                        var mem = typeof(EmployeeEnums.EmployeeSearchField).GetMember(f.ToString());
+                        var disp = mem.First().GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
+                                    .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault()?.Name ?? f.ToString();
+                        <option value="@f">@disp</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">運算</label>
+                <select class="form-select condition-operator">
+                    <option value="Contains">包含</option>
+                    <option value="Equals">等於</option>
+                    <option value="StartsWith">開頭為</option>
+                    <option value="EndsWith">結尾為</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">值</label>
+                <input type="text" class="form-control condition-value" />
+            </div>
+            <div class="col-md-1 text-end">
+                <button type="button" class="btn btn-outline-danger btn-remove-condition">移除</button>
+            </div>
+        </div>
+    </template>
+
+    <template id="sort-template">
+        <div class="row g-2 align-items-end sort-row mb-2">
+            <div class="col-md-6">
+                <select class="form-select sort-field">
+                    <option value="">-- 請選擇 --</option>
+                    @foreach (var s in Enum.GetValues(typeof(EmployeeEnums.EmployeeSortField)).Cast<EmployeeEnums.EmployeeSortField>())
+                    {
+                        var mem = typeof(EmployeeEnums.EmployeeSortField).GetMember(s.ToString());
+                        var disp = mem.First().GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
+                                    .Cast<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault()?.Name ?? s.ToString();
+                        <option value="@s">@disp</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select class="form-select sort-direction">
+                    <option value="ASC">升冪 ↑</option>
+                    <option value="DESC">降冪 ↓</option>
+                </select>
+            </div>
+            <div class="col-md-2 text-end">
+                <button type="button" class="btn btn-outline-danger btn-remove-sort">移除</button>
+            </div>
+        </div>
+    </template>
+</div>
 </div>
 
+
+@* 以下為 table *@
 <div class="mt-3 pe-2 py-2 d-flex justify-content-end bg-light-gray">
     <a class="btn btn-primary px-4" asp-controller="Employee" asp-action="Create">新增</a>
 </div>
@@ -269,4 +274,31 @@
 
 @section Scripts {
     <script type="module" src="~/js/Employee/index.js"></script>
+
+    <script>
+        // Toggle the advanced search mode sections based on the advMode radios
+        (function () {
+            const fieldRadio = document.getElementById('adv_mode_field');
+            const multiRadio = document.getElementById('adv_mode_multi');
+            const fieldSection = document.getElementById('field-search-mode');
+            const multiSection = document.getElementById('multi-search-mode');
+
+            function updateSections() {
+                if (!fieldSection || !multiSection || !fieldRadio || !multiRadio) return;
+                if (fieldRadio.checked) {
+                    fieldSection.style.display = '';
+                    multiSection.style.display = 'none';
+                } else if (multiRadio.checked) {
+                    fieldSection.style.display = 'none';
+                    multiSection.style.display = '';
+                }
+            }
+
+            // initialize
+            document.addEventListener('DOMContentLoaded', updateSections);
+
+            // listen to changes
+            document.querySelectorAll('input[name="advMode"]').forEach(r => r.addEventListener('change', updateSections));
+        })();
+    </script>
 }
